@@ -1,0 +1,3 @@
+cluster,recency_mean,recency_std,frequency_mean,frequency_std,monetary_mean,monetary_std,customer_count
+0,56.43,34.79,8718.93,9485.95,6408612.73,6779334.92,15
+1,9.44,23.18,56756.5,28300.58,53516670.77,26923874.22,45
