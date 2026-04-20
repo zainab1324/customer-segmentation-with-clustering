@@ -1,6 +1,6 @@
 # Customer Segmentation Analysis - Summary Report
 
-**Generated:** 2026-04-16 18:12:27
+**Generated:** 2026-04-20 19:57:37
 
 ## Executive Summary
 
@@ -88,9 +88,9 @@ cluster
 - Average Transaction Value: $876.88
 
 **Recommended Marketing Strategy:**
-- **Loyalty Rewards:** Points program, exclusive member perks
-- **Increase AOV:** Upselling, complementary product recommendations
-- **Community Building:** Early access, beta testing opportunities
+- **Reactivation Campaign:** Win-back offers, special discounts
+- **Personalized Re-engagement:** Product recommendations, new collection alerts
+- **Feedback & Surveys:** Understand churn reasons
 
 ### Cluster 1: At-Risk Recent (45 customers, 75.0%)
 

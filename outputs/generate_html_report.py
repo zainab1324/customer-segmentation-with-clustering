@@ -552,6 +552,16 @@ html_content += """
 # Add detailed cluster profiles
 cluster_names = ['High-Value Loyal Customers', 'At-Risk / Dormant Customers', 'New / Growing Customers', 'Occasional Shoppers', 'Window Shoppers']
 
+# Calculate overall customer base metrics for relative comparisons
+overall_recency_median = processed_data['recency'].median()
+overall_frequency_median = processed_data['frequency'].median()
+overall_monetary_median = processed_data['monetary'].median()
+
+print(f"Overall Customer Base Medians (HTML Report):")
+print(f"  Recency: {overall_recency_median:.1f} days")
+print(f"  Frequency: {overall_frequency_median:.1f} purchases")
+print(f"  Monetary: ${overall_monetary_median:,.2f}")
+
 for cluster_id in range(num_clusters):
     cluster_data = processed_data[processed_data['cluster'] == cluster_id]
     
@@ -561,19 +571,31 @@ for cluster_id in range(num_clusters):
     cluster_size = len(cluster_data)
     pct_of_total = (cluster_size / len(processed_data)) * 100
     
-    # Determine cluster characteristics
-    if recency_mean < 50 and frequency_mean > 15 and monetary_mean > processed_data['monetary'].quantile(0.75):
+    # Determine cluster characteristics using relative comparisons
+    if (recency_mean < overall_recency_median and 
+        frequency_mean > overall_frequency_median and 
+        monetary_mean > overall_monetary_median):
+        # Better than average in all RFM dimensions
         risk_level = "🟢 Low Risk - Valuable"
         strategy_type = "VIP Program"
-    elif recency_mean > 150:
+    elif (recency_mean > overall_recency_median * 2 and 
+          (frequency_mean < overall_frequency_median or monetary_mean < overall_monetary_median)):
+        # Much less recent AND below average in frequency or monetary
         risk_level = "🔴 High Risk - Dormant"
         strategy_type = "Reactivation"
-    elif frequency_mean > 20:
+    elif (frequency_mean > overall_frequency_median and monetary_mean > overall_monetary_median):
+        # High frequency and monetary (loyal despite recency)
         risk_level = "🟡 Medium Risk - Active"
         strategy_type = "Loyalty Program"
-    else:
-        risk_level = "🟡 Medium Risk - Developing"
+    elif (recency_mean < overall_recency_median * 1.5 and 
+          (frequency_mean > overall_frequency_median * 0.5 or monetary_mean > overall_monetary_median * 0.5)):
+        # Recent buyers with reasonable frequency/monetary
+        risk_level = "🟡 Medium Risk - Growing"
         strategy_type = "Growth Program"
+    else:
+        # Average or below average performance
+        risk_level = "🟡 Medium Risk - Developing"
+        strategy_type = "Nurture Program"
     
     html_content += f"""
             <div class="cluster-card cluster-{cluster_id}">
@@ -620,7 +642,7 @@ for cluster_id in range(num_clusters):
                     <ul>
 """
     
-    if risk_level.startswith("🟢"):
+    if strategy_type == "VIP Program":
         html_content += """
                         <li>Create VIP tier with exclusive benefits and rewards</li>
                         <li>Offer early access to new products and sales</li>
@@ -629,7 +651,7 @@ for cluster_id in range(num_clusters):
                         <li>Focus on retention and maximizing customer lifetime value</li>
                         <li>Cross-sell premium and complementary products</li>
 """
-    elif risk_level.startswith("🔴"):
+    elif strategy_type == "Reactivation":
         html_content += """
                         <li>Launch targeted win-back campaign with special incentives</li>
                         <li>Send personalized re-engagement emails with product recommendations</li>
@@ -638,7 +660,7 @@ for cluster_id in range(num_clusters):
                         <li>Create feedback loop for improvement</li>
                         <li>Implement automated reminder system for abandoned baskets</li>
 """
-    elif frequency_mean > 20:
+    elif strategy_type == "Loyalty Program":
         html_content += """
                         <li>Establish tiered loyalty rewards program</li>
                         <li>Offer exclusive member-only deals and early access</li>
@@ -647,14 +669,23 @@ for cluster_id in range(num_clusters):
                         <li>Provide personalized product recommendations</li>
                         <li>Invite to exclusive beta testing and product launches</li>
 """
-    else:
+    elif strategy_type == "Growth Program":
         html_content += """
-                        <li>Develop nurturing email sequences</li>
-                        <li>Offer incentives to increase purchase frequency</li>
+                        <li>Implement growth acceleration incentives</li>
+                        <li>Offer time-based discounts for repeat purchases</li>
                         <li>Expand product category recommendations</li>
                         <li>Provide educational content about product benefits</li>
-                        <li>Create time-sensitive incentives (flash sales, limited offers)</li>
-                        <li>Implement welcome series for repeat engagement</li>
+                        <li>Create bundle deals and multi-item promotions</li>
+                        <li>Send personalized onboarding sequences</li>
+"""
+    else:  # Nurture Program
+        html_content += """
+                        <li>Develop comprehensive nurture email sequences</li>
+                        <li>Offer time-limited special offers and incentives</li>
+                        <li>Provide educational content and product usage tips</li>
+                        <li>Implement abandoned cart recovery automation</li>
+                        <li>Create personalized product recommendations</li>
+                        <li>Send regular engagement and re-engagement campaigns</li>
 """
     
     html_content += """

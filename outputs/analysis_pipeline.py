@@ -489,6 +489,17 @@ Higher silhouette scores indicate better-defined, more separated clusters.
 """
 
 # Add detailed cluster profiles
+
+# Calculate overall customer base metrics for relative comparisons
+overall_recency_median = customer_features['recency'].median()
+overall_frequency_median = customer_features['frequency'].median()
+overall_monetary_median = customer_features['monetary'].median()
+
+print(f"\nOverall Customer Base Medians:")
+print(f"  Recency: {overall_recency_median:.1f} days")
+print(f"  Frequency: {overall_frequency_median:.1f} purchases")
+print(f"  Monetary: ${overall_monetary_median:,.2f}")
+
 for i in range(optimal_k):
     cluster_data = customer_features[customer_features['cluster'] == i]
     
@@ -515,22 +526,36 @@ for i in range(optimal_k):
 **Recommended Marketing Strategy:**
 """
     
-    if recency_mean < 50 and frequency_mean > 15 and monetary_mean > customer_features['monetary'].quantile(0.75):
+    # Determine strategy based on relative position vs overall customer base
+    if (recency_mean < overall_recency_median and 
+        frequency_mean > overall_frequency_median and 
+        monetary_mean > overall_monetary_median):
+        # Better than average in all RFM dimensions - VIP treatment
         summary_report += "- **VIP Program:** Premium benefits, exclusive offers, early access to sales\n"
         summary_report += "- **Retention Focus:** Regular engagement, loyalty rewards\n"
         summary_report += "- **Cross-sell:** Bundle offers, premium product recommendations\n"
-    elif recency_mean > 150:
+    elif (recency_mean > overall_recency_median * 2 and 
+          (frequency_mean < overall_frequency_median or monetary_mean < overall_monetary_median)):
+        # Much less recent AND below average in frequency or monetary - reactivation needed
         summary_report += "- **Reactivation Campaign:** Win-back offers, special discounts\n"
         summary_report += "- **Personalized Re-engagement:** Product recommendations, new collection alerts\n"
         summary_report += "- **Feedback & Surveys:** Understand churn reasons\n"
-    elif frequency_mean > 20:
+    elif (frequency_mean > overall_frequency_median and monetary_mean > overall_monetary_median):
+        # High frequency and monetary (loyal despite recency) - loyalty focus
         summary_report += "- **Loyalty Rewards:** Points program, exclusive member perks\n"
         summary_report += "- **Increase AOV:** Upselling, complementary product recommendations\n"
         summary_report += "- **Community Building:** Early access, beta testing opportunities\n"
-    else:
-        summary_report += "- **Nurture Programs:** Educational content, welcome series\n"
-        summary_report += "- **Increase Frequency:** Time-based incentives, repeat purchase discounts\n"
+    elif (recency_mean < overall_recency_median * 1.5 and 
+          (frequency_mean > overall_frequency_median * 0.5 or monetary_mean > overall_monetary_median * 0.5)):
+        # Recent buyers with reasonable frequency/monetary - growth potential
+        summary_report += "- **Growth Acceleration:** Time-based incentives, repeat purchase discounts\n"
         summary_report += "- **Category Expansion:** Cross-category recommendations\n"
+        summary_report += "- **Educational Content:** Product benefits, usage tips\n"
+    else:
+        # Average or below average - nurture and develop
+        summary_report += "- **Nurture Programs:** Educational content, welcome series\n"
+        summary_report += "- **Incentive Programs:** Time-limited offers, bundle deals\n"
+        summary_report += "- **Re-engagement:** Personalized recommendations, abandoned cart recovery\n"
 
 summary_report += """
 
